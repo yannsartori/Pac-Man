@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="board">
+      <canvas id="maze" width=1400 height=1400></canvas>
+      <canvas id="gui" width=1400 height=1400></canvas>
+      <canvas id="main" tabindex="1" width=1400 height=1400></canvas>
+    </div>
+    <style>
+      #board {
+        width: 1400px;
+        height: 1400px;
+        position: relative;
+      }
+      canvas { position: absolute; }
+      #main { z-index: 3; }
+      #maze { z-index: 1; }
+      #gui  { z-index: 2; }
+    </style>
+  </body>
+  <script src="./gridData.js" type="module"></script>
+  <script src="./constants.js" type="module"></script>
+  <script src="./gui.js" type="module"></script>
+  <script src="./pacman.js" type="module"></script>
+  <script src="./fruit.js" type="module"></script>
+  <script src="./ghosts.js" type="module"></script>
+  <script src="./main.js" type="module"></script>
+
+</html>
