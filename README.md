@@ -16,6 +16,8 @@ With a project this complex, there are inevitably a lot of additions that can be
 - draw the outline and inline to be more reflective of the board to reduce clipping
 - making a check to prevent ghosts from getting stuck (I'd probably add a check to the move functions to see if the path is the same a where it is, and if so, move to a tile chosen at random)
 - allowing ghosts to use warps in chase mode
+
+
 Bugs I have identified:
 - Inky sometimes just strolls from warp to warp, going through stuff he shouldn't.
   - **fix:** I suspect this is due to when I check to see if his target tile is out of bounds, and if so, I correct it.
