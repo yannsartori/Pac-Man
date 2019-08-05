@@ -30,8 +30,8 @@ export let grid = [
 [n(), p(), n(), n(), n(), n(), p(), n(), n(), p(), n(), n(), n(), n(), n(), n(), n(), n(), p(), n(), n(), p(), n(), n(), n(), n(), p(), n()],
 [n(), p(), p(), p(), p(), p(), p(), n(), n(), p(), p(), p(), p(), n(), n(), p(), p(), p(), p(), n(), n(), p(), p(), p(), p(), p(), p(), n()],
 [n(), n(), n(), n(), n(), n(), p(), n(), n(), n(), n(), n(), f(), n(), n(), f(), n(), n(), n(), n(), n(), p(), n(), n(), n(), n(), n(), n()],
+[n(), n(), n(), n(), n(), n(), p(), n(), n(), n(), n(), n(), f(), n(), n(), f(), n(), n(), n(), n(), n(), p(), n(), n(), n(), n(), n(), n()],
 [n(), n(), n(), n(), n(), n(), p(), n(), n(), f(), f(), f(), f(), f(), f(), f(), f(), f(), f(), n(), n(), p(), n(), n(), n(), n(), n(), n()],
-[n(), n(), n(), n(), n(), n(), p(), n(), n(), f(), n(), n(), n(), n(), n(), n(), n(), n(), f(), n(), n(), p(), n(), n(), n(), n(), n(), n()],
 [n(), n(), n(), n(), n(), n(), p(), n(), n(), f(), n(), n(), n(), n(), n(), n(), n(), n(), f(), n(), n(), p(), n(), n(), n(), n(), n(), n()],
 [f(), f(), f(), f(), f(), f(), p(), f(), f(), f(), n(), n(), n(), n(), n(), n(), n(), n(), f(), f(), f(), p(), f(), f(), f(), f(), f(), f()],
 [n(), n(), n(), n(), n(), n(), p(), f(), f(), f(), n(), n(), n(), n(), n(), n(), n(), n(), f(), f(), f(), p(), n(), n(), n(), n(), n(), n()],
@@ -378,18 +378,21 @@ export function drawGrid() {
   
   ctx.translate(0, transToImproveGraphic);
   
-  inLineTopHorizontal(11, 10, 0, 4);
-  inLineTopHorizontal(11, 11, 0, 4);
-  inLineTopHorizontal(11, 12, 0, 4);
-  inLineTopHorizontal(11, 15, 0, 4);
+  
+  inLineBottomHorizontal(11, 10, -3, 0);
+  inLineBottomHorizontal(11, 10, 0, 0);
+  inLineBottomHorizontal(11, 11, 0, 0);
+  inLineBottomHorizontal(11, 12, 0, 0);
+  inLineBottomHorizontal(11, 15, 0, 0);
   ctx.fillStyle = "white";
-  inLineTopHorizontal(11, 13, -8, 4);
-  inLineTopHorizontal(11, 13, 0, 4);
-  inLineTopHorizontal(11, 14, 0, 4);
-  inLineTopHorizontal(11, 14, 0, 4);
+  inLineBottomHorizontal(11, 13, -8, 0);
+  inLineBottomHorizontal(11, 13, 0, 0);
+  inLineBottomHorizontal(11, 14, 0, 0);
+  inLineBottomHorizontal(11, 14, 0, 0);
   ctx.fillStyle = "blue";
-  inLineTopHorizontal(11, 16, -1, 4);
-  inLineRightVertical(11, 9, -2, 4);
+  inLineBottomHorizontal(11, 16, -1, 0);
+  inLineBottomHorizontal(11, 16, 1, 0);
+  
   inLineRightVertical(12, 9, -2);
   inLineRightVertical(13, 9, -2);
   inLineRightVertical(14, 9, -2);
@@ -405,7 +408,6 @@ export function drawGrid() {
   inLineRightVertical(14, 16, 1);
   inLineRightVertical(13, 16, 1);
   inLineRightVertical(12, 16, 1);
-  inLineRightVertical(11, 16, 1, 4);
   
   inLineTopLeft(16, 7); 
   inLineTopRight(16, 7);

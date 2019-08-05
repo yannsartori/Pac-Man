@@ -131,7 +131,7 @@ let pacManPosition = [0, 0, 0];
 let PACMAN_RADIUS = 0;
 let scatter = true;
 let consumeTimer = 0;
-let defaultPos = [10, 13];
+let defaultPos = [11, 13];
 function Ghost(colour, y, x) {
   this.x = (!x) ? 0 : x; //for drawing
   this.y = (!y) ? 0 : y;
@@ -225,14 +225,12 @@ function Ghost(colour, y, x) {
           case "cyan": inkyMove.call(this); break;
           case "orange": clydeMove.call(this); break;
         }
-      } catch (error) {
-        //in case there is some weird rounding error and they try to acess an illegal position.
-        //In that case, they choose a random, valid tile to go to, then resume normal path finding
-        frightMove.call(this);
+      } catch(error) {
+        console.log(error);
+        continueToIntersection.call(this);
       }
     }
     moveToCommittedPosition.call(this);
-    fixPos.call(this); //centers the ghost
     this.centerX = this.x + 0.5; 
     this.centerY = this.y + 0.5;
     this.fright[0] = powerMode && !this.fright[1];
@@ -242,42 +240,27 @@ function Ghost(colour, y, x) {
 }
 function inHouseMovement() { //bounces back and forth
   if (!this.committedPosition) {
-    if (Math.round(this.centerY) === 11) this.committedPosition = [15, Math.round(this.centerX)];
-    else if (Math.round(this.centerY) === 15) this.committedPosition = [11, Math.round(this.centerX)];
+    if (Math.round(this.centerY) === 13) this.committedPosition = [15, Math.round(this.centerX)];
+    else if (Math.round(this.centerY) === 15) this.committedPosition = [13, Math.round(this.centerX)];
   }
 }
 function frightMove() {
-  let chooseSquare = false;
-  if (this.committedPosition) {
-    switch (this.direction) { //determines if we moved to the committedPosition yet or not
-      case (LEFT):
-        chooseSquare = (this.centerX <= this.committedPosition[1]); break;
-      case (UP):
-        chooseSquare = (this.centerY <= this.committedPosition[0]); break;
-      case (RIGHT):
-        chooseSquare = (this.centerX >= this.committedPosition[1]); break;
-      case (DOWN):
-        chooseSquare = (this.centerY >= this.committedPosition[0]); break;
-    }
-  } else {
-    chooseSquare = true;
-    this.committedPosition = [Math.round(this.y), Math.round(this.x)];
-  }
-  if (chooseSquare) {//determines which tiles in its proximity are valid, excluding that in the reverse direction
+  if (!this.committedPosition || this.committedPosition.length === 0) {//determines which tiles in its proximity are valid, excluding that in the reverse direction
     let possibleDirections = [];
     let possiblePositions = [];
-    if (this.direction !== UP && this.committedPosition[0] + 1 < HEIGHT && grid[this.committedPosition[0] + 1][this.committedPosition[1]]) {
+    let curPos = [Math.round(this.centerY), Math.round(this.centerX)];
+    if (this.direction !== UP && curPos[0] + 1 < HEIGHT && grid[curPos[0] + 1][curPos[1]]) {
       possibleDirections.push(DOWN);
-      possiblePositions.push([this.committedPosition[0] + 1,this.committedPosition[1]]);
-    } if (this.direction !== DOWN && this.committedPosition[0] - 1 >= 0 && grid[this.committedPosition[0] - 1][this.committedPosition[1]]) {
+      possiblePositions.push([curPos[0] + 1,curPos[1]]);
+    } if (this.direction !== DOWN && curPos[0] - 1 >= 0 && grid[curPos[0] - 1][curPos[1]]) {
       possibleDirections.push(UP);
-      possiblePositions.push([this.committedPosition[0] - 1,this.committedPosition[1]]);
-    } if (this.direction !== LEFT && this.committedPosition[1] + 1 < WIDTH && grid[this.committedPosition[0]][this.committedPosition[1] + 1]) {
+      possiblePositions.push([curPos[0] - 1,curPos[1]]);
+    } if (this.direction !== LEFT && curPos[1] + 1 < WIDTH && grid[curPos[0]][curPos[1] + 1]) {
       possibleDirections.push(RIGHT);
-      possiblePositions.push([this.committedPosition[0],this.committedPosition[1] + 1]);
-    } if (this.direction !== RIGHT && this.committedPosition[1] - 1 >= 0 && grid[this.committedPosition[0]][this.committedPosition[1] - 1]) {
+      possiblePositions.push([curPos[0],curPos[1] + 1]);
+    } if (this.direction !== RIGHT && curPos[1] - 1 >= 0 && grid[curPos[0]][curPos[1] - 1]) {
       possibleDirections.push(LEFT);
-      possiblePositions.push([this.committedPosition[0],this.committedPosition[1] - 1]);
+      possiblePositions.push([curPos[0],curPos[1] - 1]);
     }
     let chosenIndex = Math.floor(Math.random()*possibleDirections.length);
     this.direction = possibleDirections[chosenIndex];
@@ -298,8 +281,11 @@ function deathMove() {
 
 function blinkyMove() {
   if (scatter) {
-    let scatterPositions = [[1, WIDTH-2], [5, WIDTH-2], [5, WIDTH - 7], [1, WIDTH-7]]; //top right
-    scatterMove.call(this, scatterPositions);
+    if (!this.committedPosition || this.committedPosition.length === 0) {
+      if (pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), 1, WIDTH - 2))
+        this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), 1, WIDTH - 2).concat([[5, WIDTH-2], [5, WIDTH - 7], [1, WIDTH-7]]); //top right
+      else this.committedPosition = [[5, WIDTH-2], [5, WIDTH - 7], [1, WIDTH-7]];
+    } 
   } else {
     if (!this.committedPosition || this.committedPosition.length === 0) { //path is pac man
       if (grid[Math.round(pacManPosition[0])][Math.round(pacManPosition[1])])
@@ -312,14 +298,23 @@ function blinkyMove() {
         this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), Math.floor(pacManPosition[0]), Math.ceil(pacManPosition[1]));
       else 
         this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), Math.ceil(pacManPosition[0]), Math.floor(pacManPosition[1]));
+      
+      let pastPosition = [Math.round(this.centerY), Math.round(this.centerX)];
+      //if(checkReverseDirection.call(this)) debugger;
+      if ((pastPosition[0] === this.committedPosition[0] && pastPosition[1] === this.committedPosition[1]) || checkReverseDirection.call(this)) {
+        continueToIntersection.call(this);
+      }
     }
   }
 }
 
 function pinkyMove() {
   if (scatter) {
-    let scatterPositions = [[1, 1], [5, 1], [5, 6], [1, 6]]; //top left
-    scatterMove.call(this, scatterPositions);
+    if (!this.committedPosition || this.committedPosition.length === 0) {
+      if (pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), 1, 1)) 
+        this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), 1, 1).concat([[5, 1], [5, 6], [1, 6]]); //top left
+      else this.committedPosition = [[5, 1], [5, 6], [1, 6]];
+    }
   } else {
     if (!this.committedPosition || this.committedPosition.length === 0) { //path is two tiles ahead of pacMan
       let tileOfInterest = null;
@@ -350,15 +345,23 @@ function pinkyMove() {
           } while (!grid[tileOfInterest[0]][tileOfInterest[1]]);
           break;
       }
+      let pastPosition = [Math.round(this.centerY), Math.round(this.centerX)];
       this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), tileOfInterest[0], tileOfInterest[1]);
+      if ((pastPosition[0] === this.committedPosition[0] && pastPosition[1] === this.committedPosition[1]) || checkReverseDirection.call(this)) {
+        continueToIntersection.call(this);
+      }
     }
   }
 }
 
 function inkyMove() {
-  if (scatter) { //bottom right
-    let scatterPositions = [[HEIGHT - 2, WIDTH - 13], [HEIGHT - 5, WIDTH - 13], [HEIGHT - 5, WIDTH - 10], [HEIGHT - 8, WIDTH - 10], [HEIGHT - 8, WIDTH - 7], [HEIGHT - 5, WIDTH - 7], [HEIGHT - 5, WIDTH - 2], [HEIGHT - 2, WIDTH - 2]];
-    scatterMove.call(this, scatterPositions);
+  if (scatter) {
+    if (!this.committedPosition || this.committedPosition.length === 0) {
+      if (pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), HEIGHT - 2, WIDTH - 13)) 
+        this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), HEIGHT - 2, WIDTH - 13).concat(
+          [[HEIGHT - 5, WIDTH - 13], [HEIGHT - 5, WIDTH - 10], [HEIGHT - 8, WIDTH - 10], [HEIGHT - 8, WIDTH - 7], [HEIGHT - 5, WIDTH - 7], [HEIGHT - 5, WIDTH - 2], [HEIGHT - 2, WIDTH - 2]]);
+      else this.committedPosition = [[HEIGHT - 5, WIDTH - 13], [HEIGHT - 5, WIDTH - 10], [HEIGHT - 8, WIDTH - 10], [HEIGHT - 8, WIDTH - 7], [HEIGHT - 5, WIDTH - 7], [HEIGHT - 5, WIDTH - 2], [HEIGHT - 2, WIDTH - 2]];
+    }
   } else {
     if (!this.committedPosition || this.committedPosition.length === 0) { 
       //finds tile two distances away from pacman, and goes to the the position 2v, where v is the vector from blink's position to said tile
@@ -390,23 +393,109 @@ function inkyMove() {
         }
         k++;
       }
+      let pastPosition = [Math.round(this.centerY), Math.round(this.centerX)];
       this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), tileOfInterest[0], tileOfInterest[1]);
+      if ((pastPosition[0] === this.committedPosition[0] && pastPosition[1] === this.committedPosition[1]) || checkReverseDirection.call(this)) {
+        continueToIntersection.call(this);
+      }
     }
   }
 }
 
 function clydeMove() {
-  if (scatter) { //bottom left
-    let scatterPositions = [[HEIGHT - 2, 1], [HEIGHT - 2, 12], [HEIGHT - 5, 12], [HEIGHT - 5, 9], [HEIGHT - 8, 9], [HEIGHT - 8, 6], [HEIGHT - 5, 6], [HEIGHT - 5, 1]];
-    scatterMove.call(this, scatterPositions);
+  if (scatter) {
+    if (!this.committedPosition || this.committedPosition.length === 0) {
+      if (pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), HEIGHT - 2, 1))
+      this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), HEIGHT - 2, 1).concat(
+        [[HEIGHT - 2, 12], [HEIGHT - 5, 12], [HEIGHT - 5, 9], [HEIGHT - 8, 9], [HEIGHT - 8, 6], [HEIGHT - 5, 6], [HEIGHT - 5, 1]]);
+      else this.committedPosition = [[HEIGHT - 2, 12], [HEIGHT - 5, 12], [HEIGHT - 5, 9], [HEIGHT - 8, 9], [HEIGHT - 8, 6], [HEIGHT - 5, 6], [HEIGHT - 5, 1]];
+    }
   } else {
     if (!this.committedPosition || this.committedPosition.length === 0) {
       if (Math.sqrt((this.centerY - pacManPosition[0])**2 + (this.centerX - pacManPosition[1])**2) <= 8) { //if he is too close to pac-man, he goes to lower left corner
         this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), HEIGHT - 2, 1);
+        let pastPosition = [Math.round(this.centerY), Math.round(this.centerX)];
+        if (!this.committedPosition || (pastPosition[0] === this.committedPosition[0] && pastPosition[1] === this.committedPosition[1]) || checkReverseDirection.call(this)) {
+          continueToIntersection.call(this);
+        }
       } else { //otherwise tracks pacman
         blinkyMove.call(this, !false);
       }
-    } 
+    }
+  }
+}
+
+function continueToIntersection() {
+  let chooseTile = false;
+  let curTile = [Math.round(this.centerY), Math.round(this.centerX)];
+  switch (this.direction) {
+    case (LEFT):
+      if (!grid[curTile[0]][curTile[1] - 1]) chooseTile = true; break;
+    case (UP):
+      if (!grid[curTile[0] - 1][curTile[1]]) chooseTile = true; break;
+    case (RIGHT):
+      if (!grid[curTile[0]][curTile[1] + 1]) chooseTile = true; break;
+    case (DOWN):
+      if (!grid[curTile[0] + 1][curTile[1]]) chooseTile = true; break;
+  }
+  if (chooseTile) {//determines which tiles in its proximity are valid, excluding that in the reverse direction
+    let possibleDirections = [];
+    if (this.direction !== UP && curTile[0] + 1 < HEIGHT && grid[curTile[0] + 1][curTile[1]]) {
+      possibleDirections.push(DOWN);
+    } if (this.direction !== DOWN && curTile[0] - 1 >= 0 && grid[curTile[0] - 1][curTile[1]]) {
+      possibleDirections.push(UP);
+    } if (this.direction !== LEFT && curTile[1] + 1 < WIDTH && grid[curTile[0]][curTile[1] + 1]) {
+      possibleDirections.push(RIGHT);
+    } if (this.direction !== RIGHT && curTile[1] - 1 >= 0 && grid[curTile[0]][curTile[1] - 1]) {
+      possibleDirections.push(LEFT);
+    }
+    let chosenIndex = Math.floor(Math.random()*possibleDirections.length);
+    this.direction = possibleDirections[chosenIndex];
+  }
+  let path = [];
+  let i  = curTile[0], j = curTile[1];
+  switch (this.direction) {
+    case (LEFT):
+      do {
+        path.push([i, j]);
+        j--;
+      } while (grid[i][j] && !grid[i - 1][j] && !grid[i + 1][j]);
+      break;
+    case (UP):
+      do {
+        path.push([i, j]);
+        i--;
+      } while (grid[i][j] && !grid[i][j - 1] && !grid[i][j + 1]);
+      break;
+    case (RIGHT):
+      do {
+        path.push([i, j]);
+        j++;
+      } while (grid[i][j] && !grid[i - 1][j] && !grid[i + 1][j]);
+      break;
+    case (DOWN):
+      do {
+        path.push([i, j]);
+        i++;
+      } while (grid[i][j] && !grid[i][j - 1] && !grid[i][j + 1]);
+      break;
+  }
+  this.committedPosition = path;
+}
+
+function checkReverseDirection() {
+  let pastPosition = [Math.round(this.y), Math.round(this.x)];
+  let curTile = this.committedPosition;
+  if (curTile[0][0]) curTile = curTile[0];
+  switch (this.direction) {
+    case (LEFT):
+      return (curTile[0] === pastPosition[0] && curTile[1] > pastPosition[1]);
+    case (UP):
+      return (curTile[0] > pastPosition[0] && curTile[1] === pastPosition[1]);
+    case (RIGHT):
+      return (curTile[0] === pastPosition[0] && curTile[1] < pastPosition[1]);
+    case (DOWN):
+      return (curTile[0] < pastPosition[0] && curTile[1] === pastPosition[1]);
   }
 }
 
@@ -499,51 +588,11 @@ function moveToCommittedPosition() {
   //deals with warps
   if ((Math.round(this.y) === 13 || Math.round(this.y) === 12) && Math.round(this.x) <= 0) {
       this.x = WIDTH - 1 - 0.51;
-      curTile[1] = WIDTH - 3;
+      this.committedPosition = [13, WIDTH - 2];
     } else if ((Math.round(this.y) === 13 || Math.round(this.y) === 12) && Math.round(this.x) >= WIDTH - 1) {
       this.x = 0.51;
-      curTile[1] = 2;
+      this.committedPosition = [13, 1];
     }
-}
-
-function scatterMove(scatterPositions) { //goes around in circles
-  let i = 0;
-  for (i; i < scatterPositions.length; i++) {
-    if ((scatterPositions[i][0] === Math.ceil(this.centerY) || scatterPositions[i][0] === Math.floor(this.centerY)) && 
-    (scatterPositions[i][1] === Math.ceil(this.centerX) || scatterPositions[i][1] === Math.floor(this.centerX))) {
-        break;
-    }
-  }
-  if (i < scatterPositions.length) {// we are at a scatterPoint. Move on to the next
-    this.committedPosition = scatterPositions[(i + 1) % scatterPositions.length];
-  }
-  else { //go to the furthest one from current position
-    let maxDistance = -1;
-    let index = 0;
-    for (i = 0; i < scatterPositions.length; i++) {
-      if (Math.sqrt((this.centerY - scatterPositions[i][0])**2 + (this.centerX - scatterPositions[i][1])**2) > maxDistance) {
-        maxDistance = Math.sqrt((this.centerY - scatterPositions[i][0])**2 + (this.centerX - scatterPositions[i][1])**2);
-        index = i;
-      }
-    }
-    if (!this.committedPosition) {
-      this.committedPosition = pathFromTileToTile(Math.round(this.centerY), Math.round(this.centerX), scatterPositions[index][0], scatterPositions[index][1])
-    }    
-  }
-}
-
-function fixPos() { //sometimes the ghosts aren't perfectly centered. Reduces ghost clipping and prevents getting stuck
-  if (this.direction === UP || this.direction === DOWN) {
-    if (Math.abs(this.centerX - Math.round(this.centerX)) > this.speed) {
-      if (this.centerX < Math.round(this.centerX)) this.x += this.speed;
-      else this.x -= this.speed;
-    } 
-  } else {
-    if (Math.abs(this.centerY - Math.round(this.centerY)) > this.speed) {
-      if (this.centerY < Math.round(this.centerY)) this.y += this.speed;
-      else this.y -= this.speed;
-    }
-  }
 }
 
 function checkCollision() {//radius * 1.5 because you could hide in certain corners and get away with it
@@ -670,6 +719,8 @@ export function ghostReset(death) {
   consumeTimer = (level < 5) ? 4000 : 3000;
   for (let ghost of ghosts) {
     ghost.inGhostHouse = true;
+    ghost.fright = [false, false];
+    ghost.dead = false;
     if (!death) { //pellet count is greater-- we are at the beginning of a level
       switch(ghost.colour) {
         case "red":

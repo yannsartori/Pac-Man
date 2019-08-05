@@ -14,7 +14,7 @@ export function PacMan() {
   this.radius = GRID_SQUARE_SIZE * (3/5);
   this.animationFrame = 0;
   this.score = 0; 
-  this.lives = 3;
+  this.lives = 3; //TODO
   
   this.speed = 0;
   this.step = 1; //+ open pacman mouth, - close pacman mouth

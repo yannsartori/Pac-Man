@@ -2,8 +2,15 @@ import {DISTANCE_BETWEEN_PELLETS, PIXEL_SIZE, WIDTH, HEIGHT, SIZE_OF_PELLET, GRI
 import {Pellet, grid, drawGrid, drawPellets, repopulatePellets} from "./gridData.js";
 import {PacMan, powerMode, updatePowerTimer} from "./pacman.js";
 import {fruits} from "./fruit.js";
-import {drawScore, drawLives} from "./gui.js";
+import {drawScore, drawLives, gameOver} from "./gui.js";
 import {ghosts, ghostUpdateLevel, ghostUpdatePacManCoords, ghostUpdatePelletCount, scatterModeSwitches, ghostReset, updateFlash} from "./ghosts.js";
+/*
+* TODO:
+* Fix pacman so that he snaps to the pellets (maybe)
+* make it so ghosts don't turn around when doing a chase mode recalculation
+* fix ghosts turning around over intersections
+* fix eaten ghost issue
+*/
 
 //M
 //first time stuff
@@ -130,18 +137,17 @@ function onDeath() {
   pacMan.lives--;
   restartLevel = true;
   setTimeout(function() {
-      if (pacMan.lives === 0) {
-        gameOver();
-        return;
-      }
       keyDown = null;
       clearScreen();
-      deathMusic.play();
       pacMan.deathAnimation();
-      setTimeout(() => {resetPositions(); playLevel(true);}, Math.round(beginningMusic.duration*1000));
+      deathMusic.play();
+      if (pacMan.lives === 0) {
+        setTimeout(() => gameOver(pacMan.score), Math.round(deathMusic.duration*1000 + 250));
+        return;
+      } else setTimeout(() => {resetPositions(); playLevel(true);}, Math.round(beginningMusic.duration*1000));
     }, 1000);
 }
-function gameOver() {alert('you lose');}
+
 //V
 
 function drawEntities() {
@@ -200,7 +206,6 @@ function smoothMovement() {
   }
   if (pelletCount !== 0 && !restartLevel) window.requestAnimationFrame(smoothMovement);
 }
-
 setTimeout(() => {
   beginningMusic.play();
   setTimeout(playLevel, Math.round(beginningMusic.duration*1000));
