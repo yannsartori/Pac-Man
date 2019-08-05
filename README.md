@@ -12,14 +12,14 @@ After making Sudoku, I wanted to create something incredibly involved. So I deci
 - making a near clone of the original game, in terms of scoring, speed, difficulty, graphics, etc
 ## On what can be improved
 With a project this complex, there are inevitably a lot of additions that can be made to this project. These include, in increasing order of difficulty:
-- adding a game over screen (right now I have a simple alert)
-- draw the outline and inline to be more reflective of the board to reduce clipping
-- making a check to prevent ghosts from getting stuck (I'd probably add a check to the move functions to see if the path is the same a where it is, and if so, move to a tile chosen at random)
-- allowing ghosts to use warps in chase mode
+- ~~adding a game over screen (right now I have a simple alert)~~ (*implement*)
+- ~~draw the outline and inline to be more reflective of the board to reduce clipping~~ (*implement*)
+- ~~making a check to prevent ghosts from getting stuck (I'd probably add a check to the move functions to see if the path is the same a where it is, and if so, move to a tile chosen at random)~~ (*implement*)
+- ~~allowing ghosts to use warps in chase mode~~ (*half implemented... they are more inclined but won't always*)
+- I improved ghost behaviour somewhat, but would like to improve it further
 
 
 Bugs I have identified:
-- Inky sometimes just strolls from warp to warp, going through stuff he shouldn't.
-  - **fix:** I suspect this is due to when I check to see if his target tile is out of bounds, and if so, I correct it.
+- ~~Inky sometimes just strolls from warp to warp, going through stuff he shouldn't.~~ (*fixed*)
 - I haven't been able to reproduce this bug, but I think what happens is if you try to consume a ghost on the last frame of fright and are in the way of its path back to the maze, the game crashes with an error of a ghost moving in an illegal territory.
   - **fix:** I suspect this is due to a ghost being in a weird, quasi state. I haven't investigated this bug enough to identify a potential fix
